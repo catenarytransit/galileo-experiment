@@ -30,12 +30,30 @@ fn get_layer_style() -> Option<VectorTileStyle> {
     serde_json::from_reader(std::fs::File::open(BASESTYLE).ok()?).ok()
 }
 
+#[cfg(not(target_arch = "wasm32"))]
+fn get_bus_layer_style() -> Option<VectorTileStyle> {
+    const BUSSTYLE: &str = "./src/bus_layer.json";
+    serde_json::from_reader(std::fs::File::open(BUSSTYLE).ok()?).ok()
+}
+
 thread_local!(
-    pub static LAYER: Arc<RwLock<VectorTileLayer<VectorTileProvider>>> =
+    pub static BASELAYER: Arc<RwLock<VectorTileLayer<VectorTileProvider>>> =
         Arc::new(RwLock::new(MapBuilder::create_vector_tile_layer(
             |&index: &TileIndex| {
                 format!(
                     "https://d1zqyi8v6vm8p9.cloudfront.net/planet/{}/{}/{}.mvt",
+                    index.z, index.x, index.y
+                )
+            },
+            tile_scheme(),
+            VectorTileStyle::default(),
+        )));
+
+        pub static BUSSHAPESMARTIN: Arc<RwLock<VectorTileLayer<VectorTileProvider>>> =
+        Arc::new(RwLock::new(MapBuilder::create_vector_tile_layer(
+            |&index: &TileIndex| {
+                format!(
+                    "https://martin.catenarymaps.org/busonly/{}/{}/{}",
                     index.z, index.x, index.y
                 )
             },
@@ -52,11 +70,16 @@ async fn main() {
 }
 
 pub async fn run(builder: MapBuilder, style: VectorTileStyle) {
-    let layer = LAYER.with(|v| v.clone());
+    let layer = BASELAYER.with(|v| v.clone());
     layer.write().unwrap().update_style(style);
+
+    let bus_style = get_bus_layer_style().unwrap();
+    let bus_layer = BUSSHAPESMARTIN.with(|v| v.clone());
+    bus_layer.write().unwrap().update_style(bus_style);
 
     builder
         .with_layer(layer.clone())
+        .with_layer(bus_layer.clone())
         .with_event_handler(move |ev, map| match ev {
             UserEvent::Click(MouseButton::Left, mouse_event) => {
                 let view = map.view().clone();

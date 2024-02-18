@@ -1,0 +1,23 @@
+{
+    "rules": [
+      {
+        "layer_name": "busonly",
+        "symbol": {
+          "line": {
+            "stroke_color": "#0022dd",
+            "width": 2
+          }
+        }
+      }
+    ],
+    "default_symbol": {
+      "line": {
+        "stroke_color": "#00000010",
+        "width": 1.0
+      },
+      "polygon": {
+        "fill_color": "#00000010"
+      }
+    },
+    "background": "#fff3e400"
+  }
