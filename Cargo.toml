@@ -1,0 +1,11 @@
+[package]
+name = "galileo-experiment"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+env_logger = "0.11.2"
+galileo = "0.1.1"
+galileo-types = "0.1.1"
+serde_json = "1.0.113"
+tokio = "1.36.0"
